@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import tempfile
 from fractions import Fraction
-from typing import Callable, Iterator, Literal, NamedTuple, cast
+from typing import Callable, Iterator, Literal, NamedTuple, cast, Any
 
 import vapoursynth as vs
 from jetpytools import (Coordinate, CustomIntEnum, CustomRuntimeError,
@@ -443,9 +443,9 @@ class SceneChangeMode(CustomIntEnum):
         return stats_clip[0]
 
     def _render_clip(
-        self, clip: vs.VideoNode, cmd: list[str], func: Callable,
+        self, clip: vs.VideoNode, cmd: list[str], func: Callable[..., Any],
         output_path: SPath | None = None, check_exists: bool = True
-    ) -> tuple[bytes | None, dict | None]:
+    ) -> tuple[bytes | None, dict[str, Any] | None]:
         """
         Render a clip for external scene change detection programs.
 
@@ -463,7 +463,7 @@ class SceneChangeMode(CustomIntEnum):
             temp_path = SPath(temp_file.name)
 
         try:
-            from ..functions.timecodes import clip_async_render
+            from ..functions.render import clip_async_render
 
             clip_async_render(clip, temp_path, 'Rendering clip for scene detection...', y4m=True)
 
@@ -525,10 +525,12 @@ class SceneChangeMode(CustomIntEnum):
                 self._prepare_av_scenechange
             )
 
+        scene_frames = {int(frame) for frame in scene_data}
+
         def _add_scene_props(n: int, f: vs.VideoFrame) -> vs.VideoFrame:
             f = f.copy()
 
-            f.props['AVSceneChange'] = int(n in scene_data)
+            f.props['AVSceneChange'] = int(n in scene_frames)
 
             return f
 
