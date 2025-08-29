@@ -832,7 +832,7 @@ if TYPE_CHECKING:
 
     class PluginProxyBase(Plugin): ...
 
-    class CoreProxyBase(Core):
+    class CoreProxyBase(_CoreProxy):
         def __init__(self) -> None: ...
 
     class EnvironmentProxyBase(Environment):
