@@ -6,7 +6,6 @@ from typing import Any, Literal, MutableMapping, Union, overload
 
 from vstools import (
     ColorRange,
-    ConstantFormatVideoNode,
     CustomRuntimeError,
     FieldBased,
     InvalidColorFamilyError,
@@ -90,13 +89,13 @@ class MVTools(vs_object):
     vectors: MotionVectors
     """Motion vectors analyzed and used for all operations."""
 
-    clip: ConstantFormatVideoNode
+    clip: vs.VideoNode
     """Clip to process."""
 
     def __init__(
         self,
         clip: vs.VideoNode,
-        search_clip: vs.VideoNode | VSFunctionNoArgs[vs.VideoNode, vs.VideoNode] | None = None,
+        search_clip: vs.VideoNode | VSFunctionNoArgs | None = None,
         vectors: MotionVectors | None = None,
         pad: int | tuple[int | None, int | None] | None = None,
         pel: int | None = None,
@@ -199,8 +198,8 @@ class MVTools(vs_object):
         levels: int | None = None,
         sharp: SharpMode | None = None,
         rfilter: RFilterMode | None = None,
-        pelclip: vs.VideoNode | VSFunctionNoArgs[vs.VideoNode, vs.VideoNode] | None = None,
-    ) -> ConstantFormatVideoNode:
+        pelclip: vs.VideoNode | VSFunctionNoArgs | None = None,
+    ) -> vs.VideoNode:
         """
         Get source clip and prepare special "super" clip with multilevel (hierarchical scaled) frames data.
         The super clip is used by both [analyze][vsdenoise.MVTools.analyze] and motion compensation (client) functions.
@@ -546,7 +545,7 @@ class MVTools(vs_object):
         thscd: int | tuple[int | None, int | float | None] | None = None,
         interleave: Literal[True] = True,
         temporal_func: None = None,
-    ) -> tuple[ConstantFormatVideoNode, tuple[int, int]]: ...
+    ) -> tuple[vs.VideoNode, tuple[int, int]]: ...
 
     @overload
     def compensate(
@@ -563,8 +562,8 @@ class MVTools(vs_object):
         thscd: int | tuple[int | None, int | float | None] | None = None,
         interleave: Literal[True] = True,
         *,
-        temporal_func: VSFunctionNoArgs[vs.VideoNode, vs.VideoNode],
-    ) -> ConstantFormatVideoNode: ...
+        temporal_func: VSFunctionNoArgs,
+    ) -> vs.VideoNode: ...
 
     @overload
     def compensate(
@@ -582,7 +581,7 @@ class MVTools(vs_object):
         *,
         interleave: Literal[False],
         temporal_func: None = None,
-    ) -> tuple[list[ConstantFormatVideoNode], list[ConstantFormatVideoNode]]: ...
+    ) -> tuple[list[vs.VideoNode], list[vs.VideoNode]]: ...
 
     def compensate(
         self,
@@ -597,11 +596,11 @@ class MVTools(vs_object):
         time: float | None = None,
         thscd: int | tuple[int | None, int | float | None] | None = None,
         interleave: bool = True,
-        temporal_func: VSFunctionNoArgs[vs.VideoNode, vs.VideoNode] | None = None,
+        temporal_func: VSFunctionNoArgs | None = None,
     ) -> Union[
-        ConstantFormatVideoNode,
-        tuple[list[ConstantFormatVideoNode], list[ConstantFormatVideoNode]],
-        tuple[ConstantFormatVideoNode, tuple[int, int]],
+        vs.VideoNode,
+        tuple[list[vs.VideoNode], list[vs.VideoNode]],
+        tuple[vs.VideoNode, tuple[int, int]],
     ]:
         """
         Perform motion compensation by moving blocks from reference frames to the current frame
@@ -698,7 +697,7 @@ class MVTools(vs_object):
         thscd: int | tuple[int | None, int | float | None] | None = None,
         interleave: Literal[True] = True,
         temporal_func: None = None,
-    ) -> tuple[ConstantFormatVideoNode, tuple[int, int]]: ...
+    ) -> tuple[vs.VideoNode, tuple[int, int]]: ...
 
     @overload
     def flow(
@@ -713,8 +712,8 @@ class MVTools(vs_object):
         thscd: int | tuple[int | None, int | float | None] | None = None,
         interleave: Literal[True] = True,
         *,
-        temporal_func: VSFunctionNoArgs[vs.VideoNode, vs.VideoNode],
-    ) -> ConstantFormatVideoNode: ...
+        temporal_func: VSFunctionNoArgs,
+    ) -> vs.VideoNode: ...
 
     @overload
     def flow(
@@ -730,7 +729,7 @@ class MVTools(vs_object):
         *,
         interleave: Literal[False],
         temporal_func: None = None,
-    ) -> tuple[list[ConstantFormatVideoNode], list[ConstantFormatVideoNode]]: ...
+    ) -> tuple[list[vs.VideoNode], list[vs.VideoNode]]: ...
 
     def flow(
         self,
@@ -743,11 +742,11 @@ class MVTools(vs_object):
         mode: FlowMode | None = None,
         thscd: int | tuple[int | None, int | float | None] | None = None,
         interleave: bool = True,
-        temporal_func: VSFunctionNoArgs[vs.VideoNode, vs.VideoNode] | None = None,
+        temporal_func: VSFunctionNoArgs | None = None,
     ) -> Union[
-        ConstantFormatVideoNode,
-        tuple[list[ConstantFormatVideoNode], list[ConstantFormatVideoNode]],
-        tuple[ConstantFormatVideoNode, tuple[int, int]],
+        vs.VideoNode,
+        tuple[list[vs.VideoNode], list[vs.VideoNode]],
+        tuple[vs.VideoNode, tuple[int, int]],
     ]:
         """
         Performs motion compensation using pixel-level motion vectors interpolated from block vectors.
@@ -833,7 +832,7 @@ class MVTools(vs_object):
         thsad2: int | tuple[int | None, int | None] | None = None,
         limit: int | tuple[int | None, int | None] | None = None,
         thscd: int | tuple[int | None, int | float | None] | None = None,
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Perform temporal denoising using motion compensation.
 
@@ -916,7 +915,7 @@ class MVTools(vs_object):
         blend: bool | None = None,
         thscd: int | tuple[int | None, int | float | None] | None = None,
         interleave: bool = True,
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Motion interpolation function that creates an intermediate frame between two frames.
 
@@ -976,7 +975,7 @@ class MVTools(vs_object):
         ml: float | None = None,
         blend: bool | None = None,
         thscd: int | tuple[int | None, int | float | None] | None = None,
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Changes the framerate of the clip by interpolating frames between existing frames.
 
@@ -1030,7 +1029,7 @@ class MVTools(vs_object):
         ml: float | None = None,
         blend: bool | None = None,
         thscd: int | tuple[int | None, int | float | None] | None = None,
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Changes the framerate of the clip by interpolating frames between existing frames
         using block-based motion compensation.
@@ -1083,7 +1082,7 @@ class MVTools(vs_object):
         blur: float | None = None,
         prec: int | None = None,
         thscd: int | tuple[int | None, int | float | None] | None = None,
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Creates a motion blur effect by simulating finite shutter time, similar to film cameras.
 
@@ -1130,7 +1129,7 @@ class MVTools(vs_object):
         time: float | None = None,
         ysc: int | None = None,
         thscd: int | tuple[int | None, int | float | None] | None = None,
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Creates a mask clip from motion vectors data.
 
@@ -1177,7 +1176,7 @@ class MVTools(vs_object):
         vectors: MotionVectors | None = None,
         delta: int = 1,
         thscd: int | tuple[int | None, int | float | None] | None = None,
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Creates scene change frameprops from motion vectors data.
 
@@ -1277,7 +1276,7 @@ class MVTools(vs_object):
         direction: Literal[MVDirection.FORWARD, MVDirection.BACKWARD] = MVDirection.FORWARD,
         delta: int = 1,
         scenechange: bool | None = None,
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Draws generated vectors onto a clip.
 
@@ -1336,7 +1335,7 @@ class MVTools(vs_object):
 
             vectors.analysis_data = get_props(vect, props_list, (int, list), func=self.expand_analysis_data)
 
-    def get_super(self, clip: vs.VideoNode | None = None) -> ConstantFormatVideoNode:
+    def get_super(self, clip: vs.VideoNode | None = None) -> vs.VideoNode:
         """
         Get the super clips from the specified clip.
 
@@ -1360,9 +1359,7 @@ class MVTools(vs_object):
 
         return super_clip
 
-    def get_vector(
-        self, vectors: MotionVectors | None = None, *, direction: MVDirection, delta: int
-    ) -> ConstantFormatVideoNode:
+    def get_vector(self, vectors: MotionVectors | None = None, *, direction: MVDirection, delta: int) -> vs.VideoNode:
         """
         Get a single motion vector.
 
@@ -1399,7 +1396,7 @@ class MVTools(vs_object):
         direction: MVDirection = MVDirection.BOTH,
         tr: int | None = None,
         multi: Literal[False] = ...,
-    ) -> tuple[list[ConstantFormatVideoNode], list[ConstantFormatVideoNode]]: ...
+    ) -> tuple[list[vs.VideoNode], list[vs.VideoNode]]: ...
 
     @overload
     def get_vectors(
@@ -1409,7 +1406,7 @@ class MVTools(vs_object):
         tr: int | None = None,
         *,
         multi: Literal[True],
-    ) -> ConstantFormatVideoNode: ...
+    ) -> vs.VideoNode: ...
 
     @overload
     def get_vectors(
@@ -1418,7 +1415,7 @@ class MVTools(vs_object):
         direction: MVDirection = MVDirection.BOTH,
         tr: int | None = None,
         multi: bool = ...,
-    ) -> ConstantFormatVideoNode | tuple[list[ConstantFormatVideoNode], list[ConstantFormatVideoNode]]: ...
+    ) -> vs.VideoNode | tuple[list[vs.VideoNode], list[vs.VideoNode]]: ...
 
     def get_vectors(
         self,
@@ -1426,7 +1423,7 @@ class MVTools(vs_object):
         direction: MVDirection = MVDirection.BOTH,
         tr: int | None = None,
         multi: bool = False,
-    ) -> ConstantFormatVideoNode | tuple[list[ConstantFormatVideoNode], list[ConstantFormatVideoNode]]:
+    ) -> vs.VideoNode | tuple[list[vs.VideoNode], list[vs.VideoNode]]:
         """
         Get the backward and forward vectors.
 
@@ -1463,8 +1460,8 @@ class MVTools(vs_object):
 
             return mv_multi
 
-        vectors_backward = list[ConstantFormatVideoNode]()
-        vectors_forward = list[ConstantFormatVideoNode]()
+        vectors_backward = list[vs.VideoNode]()
+        vectors_forward = list[vs.VideoNode]()
 
         for delta in range(1, tr + 1):
             if direction in [MVDirection.BACKWARD, MVDirection.BOTH]:

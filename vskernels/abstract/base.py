@@ -29,7 +29,6 @@ from jetpytools import cachedproperty as jetpytools_cachedproperty
 from typing_extensions import Self, deprecated
 
 from vstools import (
-    ConstantFormatVideoNode,
     CustomNotImplementedError,
     CustomRuntimeError,
     CustomValueError,
@@ -38,7 +37,6 @@ from vstools import (
     Matrix,
     MatrixLike,
     VideoFormatLike,
-    VideoNodeT,
     check_correct_subsampling,
     check_variable_format,
     check_variable_resolution,
@@ -470,7 +468,7 @@ class Scaler(BaseScaler):
         height: int | None = None,
         shift: tuple[TopShift, LeftShift] = (0, 0),
         **kwargs: Any,
-    ) -> vs.VideoNode | ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Scale a clip to a specified resolution.
 
@@ -494,8 +492,8 @@ class Scaler(BaseScaler):
         return self.scale_function(clip, **_norm_props_enums(self.get_scale_args(clip, shift, width, height, **kwargs)))
 
     def supersample(
-        self, clip: VideoNodeT, rfactor: float = 2.0, shift: tuple[TopShift, LeftShift] = (0, 0), **kwargs: Any
-    ) -> VideoNodeT:
+        self, clip: vs.VideoNode, rfactor: float = 2.0, shift: tuple[TopShift, LeftShift] = (0, 0), **kwargs: Any
+    ) -> vs.VideoNode:
         """
         Supersample a clip by a given scaling factor.
 
@@ -526,12 +524,12 @@ class Scaler(BaseScaler):
                 rfactor,
             )
 
-        return self.scale(clip, dst_width, dst_height, shift, **kwargs)  # type: ignore[return-value]
+        return self.scale(clip, dst_width, dst_height, shift, **kwargs)
 
     @deprecated('The "multi" method is deprecated. Use "supersample" instead.', category=DeprecationWarning)
     def multi(
-        self, clip: VideoNodeT, multi: float = 2.0, shift: tuple[TopShift, LeftShift] = (0, 0), **kwargs: Any
-    ) -> VideoNodeT:
+        self, clip: vs.VideoNode, multi: float = 2.0, shift: tuple[TopShift, LeftShift] = (0, 0), **kwargs: Any
+    ) -> vs.VideoNode:
         """
         Deprecated alias for `supersample`.
 
@@ -583,10 +581,10 @@ class Descaler(BaseScaler):
 
     _err_class: ClassVar[type[_UnknownBaseScalerError]] = UnknownDescalerError
 
-    descale_function: Callable[..., ConstantFormatVideoNode]
+    descale_function: Callable[..., vs.VideoNode]
     """Descale function called internally when performing descaling operations."""
 
-    rescale_function: Callable[..., ConstantFormatVideoNode]
+    rescale_function: Callable[..., vs.VideoNode]
     """Rescale function called internally when performing upscaling operations."""
 
     _implemented_funcs: ClassVar[tuple[str, ...]] = ("descale", "rescale")
@@ -598,7 +596,7 @@ class Descaler(BaseScaler):
         height: int | None,
         shift: tuple[TopShift, LeftShift] = (0, 0),
         **kwargs: Any,
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Descale a clip to the given resolution.
 
@@ -629,7 +627,7 @@ class Descaler(BaseScaler):
         height: int | None,
         shift: tuple[TopShift, LeftShift] = (0, 0),
         **kwargs: Any,
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Rescale a clip to the given resolution from a previously descaled clip.
 
@@ -709,7 +707,7 @@ class Resampler(BaseScaler):
 
     _err_class: ClassVar[type[_UnknownBaseScalerError]] = UnknownResamplerError
 
-    resample_function: Callable[..., ConstantFormatVideoNode]
+    resample_function: Callable[..., vs.VideoNode]
     """Resample function called internally when performing resampling operations."""
 
     _implemented_funcs: ClassVar[tuple[str, ...]] = ("resample",)
@@ -721,7 +719,7 @@ class Resampler(BaseScaler):
         matrix: MatrixLike | None = None,
         matrix_in: MatrixLike | None = None,
         **kwargs: Any,
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Resample a video clip to the given format.
 
@@ -798,7 +796,7 @@ class Kernel(Scaler, Descaler, Resampler):
     _implemented_funcs: ClassVar[tuple[str, ...]] = ("shift",)
 
     @overload
-    def shift(self, clip: vs.VideoNode, shift: tuple[TopShift, LeftShift], /, **kwargs: Any) -> ConstantFormatVideoNode:
+    def shift(self, clip: vs.VideoNode, shift: tuple[TopShift, LeftShift], /, **kwargs: Any) -> vs.VideoNode:
         """
         Apply a subpixel shift to the clip using the kernel's scaling logic.
 
@@ -821,7 +819,7 @@ class Kernel(Scaler, Descaler, Resampler):
     @overload
     def shift(
         self, clip: vs.VideoNode, shift_top: float | list[float], shift_left: float | list[float], /, **kwargs: Any
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Apply a subpixel shift to the clip using the kernel's scaling logic.
 
@@ -849,7 +847,7 @@ class Kernel(Scaler, Descaler, Resampler):
         shift_left: float | list[float] | None = None,
         /,
         **kwargs: Any,
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Apply a subpixel shift to the clip using the kernel's scaling logic.
 
@@ -877,8 +875,8 @@ class Kernel(Scaler, Descaler, Resampler):
 
         n_planes = clip.format.num_planes
 
-        def _shift(src: vs.VideoNode, shift: tuple[TopShift, LeftShift] = (0, 0)) -> ConstantFormatVideoNode:
-            return self.scale(src, shift=shift, **kwargs)  # type: ignore[return-value]
+        def _shift(src: vs.VideoNode, shift: tuple[TopShift, LeftShift] = (0, 0)) -> vs.VideoNode:
+            return self.scale(src, shift=shift, **kwargs)
 
         if isinstance(shifts_or_top, tuple):
             return _shift(clip, shifts_or_top)

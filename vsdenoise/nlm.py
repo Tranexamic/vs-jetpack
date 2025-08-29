@@ -10,7 +10,6 @@ from typing import Any, Callable, Generic, Sequence
 from jetpytools import CustomRuntimeError, CustomStrEnum, P, R
 
 from vstools import (
-    ConstantFormatVideoNode,
     CustomIntEnum,
     Planes,
     check_variable,
@@ -75,7 +74,7 @@ class NLMeans(Generic[P, R]):
         CUDA (GPU-based) implementation.
         """
 
-        def NLMeans(self, clip: vs.VideoNode, *args: Any, **kwargs: Any) -> ConstantFormatVideoNode:  # noqa: N802
+        def NLMeans(self, clip: vs.VideoNode, *args: Any, **kwargs: Any) -> vs.VideoNode:  # noqa: N802
             """
             Applies the Non-Local Means denoising filter using the plugin associated with the selected backend.
 
@@ -176,7 +175,7 @@ def nl_means(
     wmode: NLMeans.WeightMode = NLMeans.WeightMode.WELSCH,
     planes: Planes = None,
     **kwargs: Any,
-) -> ConstantFormatVideoNode:
+) -> vs.VideoNode:
     """
     Convenience wrapper for NLMeans implementations.
 
@@ -222,7 +221,7 @@ def nl_means(
             warnings.warn(f"nl_means: '{sargs}' argument is deprecated, use '{kargs}' instead", DeprecationWarning)
             params[kargs] = to_arr(kwargs.pop(sargs))
 
-    def _nl_means(i: int, channels: str) -> ConstantFormatVideoNode:
+    def _nl_means(i: int, channels: str) -> vs.VideoNode:
         return backend.NLMeans(
             clip,
             **{k: p[i] for k, p in params.items()},

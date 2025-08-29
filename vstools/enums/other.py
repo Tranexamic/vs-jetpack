@@ -7,7 +7,7 @@ import vapoursynth as vs
 from jetpytools import Coordinate, CustomIntEnum, CustomStrEnum, Position, Sentinel, SentinelT, Size
 from typing_extensions import Self
 
-from ..types import ConstantFormatVideoNode, HoldsPropValue, VideoNodeT
+from ..types import HoldsPropValue
 
 __all__ = ["Coordinate", "Dar", "Direction", "Position", "Region", "Resolution", "Sar", "SceneChangeMode", "Size"]
 
@@ -188,7 +188,7 @@ class Sar(_Xar):
 
         return cls(dar / (Fraction(active_area) / height))
 
-    def apply(self, clip: VideoNodeT) -> VideoNodeT:
+    def apply(self, clip: vs.VideoNode) -> vs.VideoNode:
         """
         Apply the SAR values as _SARNum and _SARDen frame properties to a clip.
         """
@@ -363,7 +363,7 @@ class SceneChangeMode(CustomIntEnum):
             SceneChangeMode.WWXD_SCXVID_INTERSECTION,
         )
 
-    def ensure_presence(self, clip: vs.VideoNode, akarin: bool | None = None) -> ConstantFormatVideoNode:
+    def ensure_presence(self, clip: vs.VideoNode, akarin: bool | None = None) -> vs.VideoNode:
         """
         Ensures all the frame properties necessary for scene change detection are created.
         """
@@ -373,7 +373,7 @@ class SceneChangeMode(CustomIntEnum):
 
         assert check_variable_format(clip, self.ensure_presence)
 
-        stats_clip = list[ConstantFormatVideoNode]()
+        stats_clip = list[vs.VideoNode]()
 
         if self.is_SCXVID:
             if not hasattr(vs.core, "scxvid"):
@@ -425,7 +425,7 @@ class SceneChangeMode(CustomIntEnum):
 
     def prepare_clip(
         self, clip: vs.VideoNode, height: int | Literal[False] = 360, akarin: bool | None = None
-    ) -> ConstantFormatVideoNode:
+    ) -> vs.VideoNode:
         """
         Prepare a clip for scene change metric calculations.
 
@@ -453,8 +453,8 @@ class SceneChangeMode(CustomIntEnum):
         return self.ensure_presence(clip, akarin)
 
     def _prepare_akarin(
-        self, clip: ConstantFormatVideoNode, stats_clip: list[ConstantFormatVideoNode], akarin: bool | None = None
-    ) -> ConstantFormatVideoNode:
+        self, clip: vs.VideoNode, stats_clip: list[vs.VideoNode], akarin: bool | None = None
+    ) -> vs.VideoNode:
         from ..utils import merge_clip_props
 
         if akarin is None:

@@ -6,7 +6,7 @@ from typing import Any
 
 from typing_extensions import deprecated
 
-from vstools import ConstantFormatVideoNode, check_variable_format, vs, vs_object
+from vstools import check_variable_format, vs, vs_object
 
 from .enums import MVDirection
 
@@ -15,14 +15,14 @@ __all__ = [
 ]
 
 
-class MotionVectors(defaultdict[MVDirection, dict[int, ConstantFormatVideoNode]], vs_object):
+class MotionVectors(defaultdict[MVDirection, dict[int, vs.VideoNode]], vs_object):
     """
     Class for storing and managing motion vectors for a video clip.
 
     Contains both backward and forward motion vectors.
     """
 
-    mv_multi: ConstantFormatVideoNode
+    mv_multi: vs.VideoNode
     """Multi-vector clip."""
 
     tr: int
@@ -44,7 +44,7 @@ class MotionVectors(defaultdict[MVDirection, dict[int, ConstantFormatVideoNode]]
     @deprecated(
         "The `motion_vectors` attribute is deprecated. Use the MotionVectors instance instead.", category=SyntaxWarning
     )
-    def motion_vectors(self) -> dict[MVDirection, dict[int, ConstantFormatVideoNode]]:
+    def motion_vectors(self) -> dict[MVDirection, dict[int, vs.VideoNode]]:
         """Dictionary containing both backward and forward motion vectors."""
         return self
 
@@ -52,7 +52,7 @@ class MotionVectors(defaultdict[MVDirection, dict[int, ConstantFormatVideoNode]]
     @deprecated(
         "The `motion_vectors` attribute is deprecated. Use the MotionVectors instance instead.", category=SyntaxWarning
     )
-    def motion_vectors(self, value: dict[MVDirection, dict[int, ConstantFormatVideoNode]]) -> None:
+    def motion_vectors(self, value: dict[MVDirection, dict[int, vs.VideoNode]]) -> None:
         self.update(value)
 
     def clear(self) -> None:

@@ -5,7 +5,6 @@ from typing import Any, Sequence
 from typing_extensions import deprecated
 
 from vstools import (
-    ConstantFormatVideoNode,
     GenericVSFunction,
     Planes,
     check_variable_format,
@@ -32,11 +31,11 @@ def norm_rmode_planes(clip: vs.VideoNode, mode: int | Sequence[int], planes: Pla
 
 def normalize_radius(
     clip: vs.VideoNode,
-    func: GenericVSFunction[ConstantFormatVideoNode],
+    func: GenericVSFunction,
     radius: Sequence[float | int] | dict[str, Sequence[float | int]],
     planes: Planes,
     **kwargs: Any,
-) -> ConstantFormatVideoNode:
+) -> vs.VideoNode:
     assert check_variable_format(clip, normalize_radius)
 
     if isinstance(radius, dict):

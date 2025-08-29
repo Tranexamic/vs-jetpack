@@ -6,7 +6,6 @@ from typing import Any, Iterable
 from typing_extensions import deprecated
 
 from vstools import (
-    ConstantFormatVideoNode,
     CustomIntEnum,
     KwargsT,
     check_variable,
@@ -131,7 +130,7 @@ class Placebo(Debander):
         ngrain = normalize_seq(fallback(self.grain, grain))
         dither = fallback(self.dither, dither)
 
-        def _placebo(clip: vs.VideoNode, thr: float, grain: Any, planes: Iterable[int]) -> ConstantFormatVideoNode:
+        def _placebo(clip: vs.VideoNode, thr: float, grain: Any, planes: Iterable[int]) -> vs.VideoNode:
             plane = 0
             for p in planes:
                 plane |= pow(2, p)
