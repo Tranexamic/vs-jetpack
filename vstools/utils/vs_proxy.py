@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import gc
 import weakref
-from ctypes import Structure
-from inspect import Parameter, Signature
-from logging import NOTSET as LOGLEVEL_NOTSET
-from logging import Handler, LogRecord
+from inspect import stack
 from math import ceil
 from multiprocessing import cpu_count
-from typing import TYPE_CHECKING, Any, Callable, Iterable, NoReturn
+from pathlib import Path
+from sys import modules as sys_modules
+from sys import path as sys_path
+from types import ModuleType
+from typing import TYPE_CHECKING, Any, Callable, Iterable
 from weakref import ReferenceType
 
 import vapoursynth as vs
@@ -140,16 +141,20 @@ from vapoursynth import (
     RawFrame,
     RawNode,
     SampleType,
+    StandaloneEnvironmentPolicy,
     TransferCharacteristics,
     VideoFormat,
     VideoFrame,
     VideoNode,
     VideoOutputTuple,
+    VSScriptEnvironmentPolicy,
     __api_version__,
     __version__,
     _CoreProxy,
+    _FastManager,
     clear_output,
     clear_outputs,
+    construct_signature,
     get_current_environment,
     get_output,
     get_outputs,
@@ -158,6 +163,11 @@ from vapoursynth import (
     register_policy,
     unregister_on_destroy,
 )
+from vapoursynth import __file__ as vs_file
+from vapoursynth import __pyx_capi__ as pyx_capi  # type: ignore[attr-defined]
+from vapoursynth import _construct_parameter as construct_parameter
+from vapoursynth import _construct_type as construct_type
+from vapoursynth import _try_enable_introspection as try_enable_introspection
 
 from ..exceptions import CustomRuntimeError
 from .vs_enums import (
@@ -697,7 +707,6 @@ __all__ = [
     "AudioChannels",
     "AudioFrame",
     "AudioNode",
-    "CallbackData",
     "ChromaLocation",
     "ColorFamily",
     "ColorPrimaries",
@@ -724,13 +733,10 @@ __all__ = [
     "MessageType",
     "Plugin",
     "PresetVideoFormat",
-    "PythonVSScriptLoggingBridge",
     "RawFrame",
     "RawNode",
     "SampleType",
-    "StandaloneEnvironmentPolicy",
     "TransferCharacteristics",
-    "VSScriptEnvironmentPolicy",
     "VideoFormat",
     "VideoFrame",
     "VideoNode",
@@ -761,31 +767,20 @@ __all__ = [
 ]
 
 
-if not TYPE_CHECKING:
-    import inspect
-    import re
-    import sys
-    import warnings
-    from pathlib import Path
-    from types import ModuleType
+import __main__
 
-    import __main__
+if not hasattr(__main__, "__file__") and "__vapoursynth__" not in sys_modules:
+    first_stack = stack()[-1]
 
-    if not hasattr(__main__, "__file__") and "__vapoursynth__" not in sys.modules:
-        first_stack = inspect.stack()[-1]
+    sys_modules["__vapoursynth__"] = ModuleType("__vapoursynth__")
 
-        sys.modules["__vapoursynth__"] = ModuleType("__vapoursynth__")
+    cope = (Path.cwd() / first_stack.filename).resolve()
 
-        cope = (Path.cwd() / first_stack.filename).resolve()
+    first_stack = None
 
-        first_stack = None
+    sys_modules["__vapoursynth__"].__file__ = __main__.__file__ = str(cope)
 
-        sys.modules["__vapoursynth__"].__file__ = __main__.__file__ = str(cope)
-
-        sys.path.append(str(cope.parent))
-
-    warnings._add_filter("ignore", re.compile(".*smallest subnormal.*numpy.*"), Warning, None, 0, append=False)
-    warnings._add_filter("ignore", re.compile(".*divide by zero.*"), Warning, None, 0, append=False)
+    sys_path.append(str(cope.parent))
 
 
 def register_on_creation(callback: Callable[..., None], strict: bool = False) -> None:
@@ -1190,80 +1185,6 @@ def _check_environment() -> None:
             raise ValueError("The environment has already been destroyed.")
 
 
-_objproxies = {}  # type: ignore
+_objproxies = {}  # type: ignore[var-annotated]
 
 core = VSCoreProxy()
-
-
-if TYPE_CHECKING:
-
-    class PyCapsule(Structure): ...
-
-    pyx_capi: dict[str, PyCapsule] = ...  # type: ignore
-
-    class StandaloneEnvironmentPolicy(EnvironmentPolicy):
-        def __init__(self) -> NoReturn: ...
-
-        def _on_log_message(self, level: MessageType, msg: str) -> None: ...
-
-        def on_policy_registered(self, api: EnvironmentPolicyAPI) -> None: ...  # pyright: ignore[reportIncompatibleMethodOverride]
-
-        def on_policy_cleared(self) -> None: ...
-
-        def get_current_environment(self) -> EnvironmentData: ...
-
-        def set_environment(self, environment: EnvironmentData | None) -> EnvironmentData: ...
-
-        def is_alive(self, environment: EnvironmentData) -> bool: ...
-
-    class VSScriptEnvironmentPolicy(EnvironmentPolicy):
-        def __init__(self) -> NoReturn: ...
-
-        def on_policy_registered(self, policy_api: EnvironmentPolicyAPI) -> None: ...  # pyright: ignore[reportIncompatibleMethodOverride]
-
-        def on_policy_cleared(self) -> None: ...
-
-        def get_current_environment(self) -> EnvironmentData | None: ...
-
-        def set_environment(self, environment: EnvironmentData | None) -> EnvironmentData | None: ...
-
-        def is_alive(self, environment: EnvironmentData) -> bool: ...
-
-    def construct_type(signature: str) -> type: ...
-
-    def construct_parameter(signature: str) -> Parameter: ...
-
-    def construct_signature(signature: str, return_signature: str, injected: str | None = None) -> Signature: ...
-
-    def try_enable_introspection(version: int | None = None) -> bool: ...
-
-    class CallbackData:
-        def __init__(
-            self,
-            node: RawNode,
-            env: EnvironmentData,
-            callback: Callable[[RawFrame | None, Exception | None], None] | None = None,
-        ) -> None: ...
-
-        def receive(self, n: int, result: RawFrame | Exception) -> None: ...
-
-    class PythonVSScriptLoggingBridge(Handler):
-        def __init__(self, parent: Handler, level: int = LOGLEVEL_NOTSET) -> None: ...
-
-        def emit(self, record: LogRecord) -> None: ...
-
-    class _FastManager: ...
-else:
-    from vapoursynth import (
-        CallbackData,
-        PythonVSScriptLoggingBridge,
-        StandaloneEnvironmentPolicy,
-        VSScriptEnvironmentPolicy,
-        _FastManager,
-        construct_signature,
-    )
-    from vapoursynth import __file__ as vs_file
-    from vapoursynth import __pyx_capi__ as pyx_capi
-    from vapoursynth import _construct_parameter as construct_parameter
-    from vapoursynth import _construct_type as construct_type
-    from vapoursynth import _try_enable_introspection as try_enable_introspection
