@@ -531,9 +531,7 @@ def get_b(clip: vs.VideoNode, /) -> vs.VideoNode:
     return plane(clip, 2)
 
 
-def insert_clip(
-    clip: vs.VideoNode, /, insert: vs.VideoNode, start_frame: int, strict: bool = True
-) -> vs.VideoNode:
+def insert_clip(clip: vs.VideoNode, /, insert: vs.VideoNode, start_frame: int, strict: bool = True) -> vs.VideoNode:
     """
     Replace frames of a longer clip with those of a shorter one.
 
@@ -591,9 +589,7 @@ def join(luma: vs.VideoNode, chroma: vs.VideoNode, family: vs.ColorFamily | None
 
 
 @overload
-def join(
-    y: vs.VideoNode, u: vs.VideoNode, v: vs.VideoNode, family: Literal[vs.ColorFamily.YUV]
-) -> vs.VideoNode:
+def join(y: vs.VideoNode, u: vs.VideoNode, v: vs.VideoNode, family: Literal[vs.ColorFamily.YUV]) -> vs.VideoNode:
     """
     Join a list of planes together to form a single YUV clip.
 
@@ -626,9 +622,7 @@ def join(
 
 
 @overload
-def join(
-    r: vs.VideoNode, g: vs.VideoNode, b: vs.VideoNode, family: Literal[vs.ColorFamily.RGB]
-) -> vs.VideoNode:
+def join(r: vs.VideoNode, g: vs.VideoNode, b: vs.VideoNode, family: Literal[vs.ColorFamily.RGB]) -> vs.VideoNode:
     """
     Join a list of planes together to form a single RGB clip.
 
